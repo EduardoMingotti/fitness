@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#111827">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Meu Check-in Fitness</title>
+  <link rel="manifest" href="manifest.json">
+  <style>
+    :root{--bg:#07111f;--card:#111d2e;--soft:#1b2a40;--text:#f8fafc;--muted:#9fb0c7;--brand:#34d399;--brand2:#22c55e;--warn:#fbbf24;--danger:#fb7185;--line:#263750}
+    *{box-sizing:border-box} body{margin:0;background:linear-gradient(180deg,#07111f,#0d1726);color:var(--text);font:16px system-ui,-apple-system,Segoe UI,Roboto,sans-serif;min-height:100vh}
+    button,input{font:inherit} button{cursor:pointer} .app{max-width:620px;margin:auto;padding:calc(18px + env(safe-area-inset-top)) 16px calc(95px + env(safe-area-inset-bottom))}
+    header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}.eyebrow{color:var(--brand);font-size:.78rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase}h1{font-size:1.55rem;margin:3px 0}.level{background:var(--soft);border:1px solid var(--line);border-radius:16px;padding:8px 11px;text-align:center}.level b{display:block;color:var(--warn)}
+    .card{background:rgba(17,29,46,.94);border:1px solid var(--line);border-radius:22px;padding:18px;margin:13px 0;box-shadow:0 12px 30px #0004}.hero{background:linear-gradient(135deg,#15334a,#11273e)}
+    .row{display:flex;gap:10px;align-items:center}.between{justify-content:space-between}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:14px}.stat{background:#0b1728;border-radius:16px;padding:12px 6px;text-align:center}.stat strong{font-size:1.35rem;display:block}.stat span,.muted{color:var(--muted);font-size:.82rem}
+    .progress{height:10px;background:#07111f;border-radius:99px;overflow:hidden;margin-top:12px}.progress i{display:block;height:100%;background:linear-gradient(90deg,var(--brand),var(--brand2));width:0}
+    h2{font-size:1.05rem;margin:0 0 12px}.workout{display:grid;gap:9px}.choice{width:100%;display:flex;justify-content:space-between;align-items:center;text-align:left;background:var(--soft);border:1px solid var(--line);color:var(--text);border-radius:16px;padding:14px}.choice small{color:var(--muted);display:block;margin-top:3px}.choice .arrow{font-size:1.3rem;color:var(--brand)}
+    .checklist{display:grid;gap:10px}.check{display:flex;align-items:center;gap:12px;background:var(--soft);padding:13px;border-radius:15px}.check input{width:22px;height:22px;accent-color:var(--brand)}
+    .primary,.secondary,.danger{border:0;border-radius:15px;padding:14px 16px;font-weight:800}.primary{color:#042117;background:var(--brand);width:100%}.secondary{color:var(--text);background:var(--soft);border:1px solid var(--line)}.danger{color:#fff;background:#9f1239}.primary:disabled{opacity:.45}
+    .overlay{position:fixed;inset:0;background:#07111f;z-index:20;display:none;padding:calc(20px + env(safe-area-inset-top)) 18px calc(20px + env(safe-area-inset-bottom));overflow:auto}.overlay.active{display:block}.timer-wrap{max-width:520px;margin:auto;text-align:center}.timer-head{display:flex;justify-content:space-between;align-items:center}.round{color:var(--brand);font-weight:800}.exercise{font-size:2rem;margin:42px 0 8px}.instruction{color:var(--muted);min-height:48px}.clock{width:224px;height:224px;border-radius:50%;display:grid;place-items:center;margin:26px auto;background:conic-gradient(var(--brand) var(--p,0%),var(--soft) 0);position:relative}.clock:after{content:"";position:absolute;inset:12px;background:#07111f;border-radius:50%}.clock span{font-size:3.8rem;font-weight:900;z-index:1}.controls{display:grid;grid-template-columns:1fr 1fr;gap:10px}.controls .primary{grid-column:1/-1}.tip{font-size:.76rem;color:var(--muted);margin-top:20px}
+    .toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(120px);background:#ecfdf5;color:#064e3b;padding:12px 16px;border-radius:14px;font-weight:700;transition:.25s;z-index:50}.toast.show{transform:translateX(-50%) translateY(0)}
+  </style>
+</head>
+<body>
+<main class="app">
+  <header><div><div class="eyebrow">Check-in diário</div><h1 id="greeting">Bora treinar?</h1></div><div class="level"><span>Nível</span><b id="level">1</b></div></header>
+  <section class="card hero">
+    <div class="row between"><div><b>Progresso de hoje</b><div class="muted" id="todayLabel"></div></div><strong id="dailyScore">0/3</strong></div>
+    <div class="progress"><i id="dailyBar"></i></div>
+    <div class="stats"><div class="stat"><strong id="points">0</strong><span>pontos</span></div><div class="stat"><strong id="streak">0</strong><span>sequência</span></div><div class="stat"><strong id="completed">0</strong><span>treinos</span></div></div>
+  </section>
+
+  <section class="card"><h2>Escolha o treino</h2><div class="workout">
+    <button class="choice" onclick="startWorkout('circuit')"><span><b>Circuito completo</b><small>3 rodadas · cerca de 15 min</small></span><span class="arrow">›</span></button>
+    <button class="choice" onclick="startWorkout('walk')"><span><b>Passeio + trote</b><small>20 min alternando ritmos</small></span><span class="arrow">›</span></button>
+  </div></section>
+
+  <section class="card"><h2>Hábitos de hoje</h2><div class="checklist">
+    <label class="check"><input id="food" type="checkbox"><span><b>Meta alimentar</b><br><span class="muted">Mantive minhas escolhas planejadas</span></span></label>
+    <label class="check"><input id="water" type="checkbox"><span><b>Água</b><br><span class="muted">Cumpri minha meta de hidratação</span></span></label>
+  </div></section>
+  <button class="secondary" style="width:100%" onclick="resetToday()">Limpar check-in de hoje</button>
+  <p class="tip">Interrompa o exercício se sentir dor, tontura ou mal-estar. Os dados ficam somente neste aparelho.</p>
+</main>
+
+<section class="overlay" id="trainer" aria-live="polite">
+ <div class="timer-wrap">
+  <div class="timer-head"><button class="secondary" onclick="exitWorkout()">Fechar</button><span class="round" id="roundLabel"></span><button class="secondary" onclick="toggleVoice()" id="voiceBtn">🔊 Voz</button></div>
+  <h2 class="exercise" id="exerciseName"></h2><p class="instruction" id="instruction"></p>
+  <div class="clock" id="clock"><span id="clockValue">00:00</span></div>
+  <div class="controls"><button class="secondary" onclick="togglePause()" id="pauseBtn">Pausar</button><button class="secondary" onclick="nextStep()">Avançar</button><button class="primary" onclick="mainAction()" id="mainBtn">Começar</button></div>
+  <p class="tip">Mantenha uma execução confortável e com boa técnica. Não prenda a respiração.</p>
+ </div>
+</section>
+<div class="toast" id="toast"></div>
+<script>
+const routines={
+ circuit:{title:'Circuito completo',steps:[
+  {name:'Prepare-se',seconds:5,say:'Prepare-se. O treino vai começar.'},
+  ...[1,2,3].flatMap((r,i)=>[
+   {name:'Agachamento',seconds:45,reps:12,say:'Faça doze agachamentos, no seu ritmo.',round:r},
+   {name:'Flexão',seconds:45,reps:12,say:'Agora, doze flexões. Adapte apoiando os joelhos se necessário.',round:r},
+   {name:'Polichinelos',seconds:40,reps:30,say:'Faça trinta polichinelos.',round:r},
+   {name:'Prancha',seconds:30,say:'Prancha por trinta segundos.',round:r},
+   ...(i<2?[{name:'Descanso',seconds:60,say:'Descanse por sessenta segundos. Respire com calma.',round:r}]:[])
+  ])]},
+ walk:{title:'Passeio + trote',steps:[
+  {name:'Caminhada leve',seconds:120,say:'Comece com dois minutos de caminhada leve.'},
+  ...Array.from({length:6},(_,i)=>[{name:'Trote leve',seconds:60,say:'Agora, um minuto de trote leve.',round:i+1},{name:'Caminhada',seconds:120,say:'Caminhe por dois minutos.',round:i+1}]).flat()
+ ]}
+};
+let state={routine:null,index:0,left:0,total:0,running:false,paused:false,voice:true,timer:null};
+const dayKey=()=>new Date().toISOString().slice(0,10); const storeKey='fitness-checkin-v1';
+let data=JSON.parse(localStorage.getItem(storeKey)||'{"days":{},"points":0,"completed":0}');
+function today(){return data.days[dayKey()]||(data.days[dayKey()]={workout:false,food:false,water:false});}
+function save(){localStorage.setItem(storeKey,JSON.stringify(data));render();}
+function render(){const t=today();food.checked=t.food;water.checked=t.water;const n=[t.workout,t.food,t.water].filter(Boolean).length;dailyScore.textContent=n+'/3';dailyBar.style.width=(n/3*100)+'%';points.textContent=data.points||0;completed.textContent=data.completed||0;level.textContent=Math.floor((data.points||0)/100)+1;streak.textContent=calcStreak();todayLabel.textContent=new Intl.DateTimeFormat('pt-BR',{weekday:'long',day:'2-digit',month:'short'}).format(new Date());}
+function calcStreak(){let streak=0,d=new Date();while(true){const k=d.toISOString().slice(0,10),x=data.days[k];if(x&&[x.workout,x.food,x.water].some(Boolean)){streak++;d.setDate(d.getDate()-1)}else break}return streak}
+food.onchange=()=>setHabit('food',food.checked);water.onchange=()=>setHabit('water',water.checked);
+function setHabit(k,v){const t=today();if(t[k]!==v)data.points=Math.max(0,(data.points||0)+(v?10:-10));t[k]=v;save();showToast(v?'+10 pontos!':'Check-in removido')}
+function startWorkout(type){state.routine=type;state.index=0;state.running=false;state.paused=false;trainer.classList.add('active');loadStep();mainBtn.textContent='Começar';pauseBtn.textContent='Pausar';}
+function loadStep(){const s=routines[state.routine].steps[state.index];if(!s)return completeWorkout();state.left=s.seconds;state.total=s.seconds;exerciseName.textContent=s.name;instruction.textContent=s.reps?s.reps+' repetições · avance antes se concluir':'Siga o cronômetro';roundLabel.textContent=s.round?'Rodada '+s.round:'';updateClock();if(state.running)speak(s.say);}
+function mainAction(){if(!state.running){state.running=true;speak(routines[state.routine].steps[state.index].say);mainBtn.textContent='Concluir treino';state.timer=setInterval(tick,1000)}else completeWorkout()}
+function tick(){if(state.paused)return;state.left--;updateClock();if(state.left<=0)nextStep()}
+function updateClock(){clockValue.textContent=String(Math.floor(state.left/60)).padStart(2,'0')+':'+String(state.left%60).padStart(2,'0');clock.style.setProperty('--p',((state.total-state.left)/state.total*100)+'%')}
+function nextStep(){state.index++;loadStep()}
+function togglePause(){if(!state.running)return;state.paused=!state.paused;pauseBtn.textContent=state.paused?'Continuar':'Pausar';speechSynthesis.cancel()}
+function toggleVoice(){state.voice=!state.voice;voiceBtn.textContent=state.voice?'🔊 Voz':'🔇 Voz';speechSynthesis.cancel()}
+function speak(text){if(!state.voice||!('speechSynthesis'in window))return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang='pt-BR';u.rate=.95;const voices=speechSynthesis.getVoices();u.voice=voices.find(v=>v.lang.toLowerCase().startsWith('pt-br'))||voices.find(v=>v.lang.toLowerCase().startsWith('pt'))||null;speechSynthesis.speak(u)}
+function completeWorkout(){clearInterval(state.timer);speechSynthesis.cancel();const t=today();if(!t.workout){t.workout=true;data.points=(data.points||0)+50;data.completed=(data.completed||0)+1;save()}trainer.classList.remove('active');showToast('Treino concluído: +50 pontos!');speak('Treino concluído. Muito bem!')}
+function exitWorkout(){clearInterval(state.timer);speechSynthesis.cancel();trainer.classList.remove('active')}
+function resetToday(){const t=today();data.points=Math.max(0,(data.points||0)-(t.workout?50:0)-(t.food?10:0)-(t.water?10:0));if(t.workout)data.completed=Math.max(0,(data.completed||0)-1);data.days[dayKey()]={workout:false,food:false,water:false};save();showToast('Dia reiniciado')}
+function showToast(txt){toast.textContent=txt;toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),2200)}
+render();
+if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+</script>
+</body></html>
